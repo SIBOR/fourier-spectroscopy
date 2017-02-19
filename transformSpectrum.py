@@ -7,12 +7,13 @@ Created on Mon Jul 18 13:54:54 2016
 import matplotlib.pyplot as plt
 import numpy as np
 
-filename = '../1-17/tek0016CH3.csv'
+filenames = ['../1-17/tek0013CH3.csv','../1-17/tek0014CH3.csv','../1-17/tek0015CH3.csv','../1-17/tek0016CH3.csv','../1-17/tek0017CH3.csv']
+plotLabels = ['No Scanning','No Scanning','Scanning','Scanning','Scanning']
 tsVelocityMMsec = .05
 
 wF_uM = 2.6
 wI_uM = 4.0
-numPoints = 1000
+numPoints = 10000
 subtractBaseline = True
 plotInterferogram = False
 
@@ -37,19 +38,6 @@ def getFileData(fName):
         dataOut[key]=np.array(dataOut[key])
     return dataOut
     
-dat = getFileData(filename)
-x,y = dat['time']*2*tsVelocityMMsec,dat['ch1']
-
-baseline = np.mean([np.mean(y[1:len(x)/4]),np.mean(y[len(x)*3/4:-1])])
-if(subtractBaseline):
-    y = y - baseline
-
-if(plotInterferogram):
-    plt.plot(x,y)
-    plt.xlabel('Path Difference (mm)')
-    plt.ylabel('Intensity')
-    plt.show()
-
 def fourierTrans(datX,datY,wi,wf,n):
     freqs =np.linspace(wi,wf,n)
     wD = []
@@ -65,12 +53,38 @@ def fft(datX,datY):
     ft = np.fft.fft(datY)
     ft = ft[1::]
     return {'f' : [rangeX/i for i in range(1,len(datX))[::-1]], 'y' : ft[::-1]}
+    
 
-ft = fourierTrans(x,y,wI_uM,wF_uM,numPoints)
-#ft = fft(x,y)
-if(plotInterferogram):
-    plt.figure(2)
-plt.plot(ft['f'],np.abs(ft['y'])**2)
-plt.xlabel('Wavelength (uM)')
-plt.ylabel('Spectral Density')
+if(isinstance(filenames,str)):
+    filenames=[filenames]
+elif(isinstance(filenames,list)):
+    plotInterferogram=False
+    
+for i in range(0,len(filenames)):
+    filename=filenames[i]
+    dat = getFileData(filename)
+    x,y = dat['time']*2*tsVelocityMMsec,dat['ch1']
+    
+    baseline = np.mean([np.mean(y[1:len(x)/4]),np.mean(y[len(x)*3/4:-1])])
+    if(subtractBaseline):
+        y = y - baseline
+    
+    if(plotInterferogram):
+        plt.plot(x,y)
+        plt.xlabel('Path Difference (mm)')
+        plt.ylabel('Intensity')
+        plt.show()
+    
+    ft = fourierTrans(x,y,wI_uM,wF_uM,numPoints)
+    #ft = fft(x,y)
+    if(plotInterferogram):
+        plt.figure(2)
+    if(len(plotLabels)==len(filenames)):
+        plt.plot(ft['f'],np.abs(ft['y'])**2,label=plotLabels[i])
+    else:    
+        plt.plot(ft['f'],np.abs(ft['y'])**2)
+    plt.xlabel('Wavelength (uM)')
+    plt.ylabel('Spectral Density')
+
+plt.legend()
 plt.show()
