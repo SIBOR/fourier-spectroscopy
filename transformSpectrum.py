@@ -6,6 +6,7 @@ Created on Mon Jul 18 13:54:54 2016
 """
 import matplotlib.pyplot as plt
 import numpy as np
+import numexpr as ne
 
 filenames = ['../1-17/tek0013CH3.csv','../1-17/tek0014CH3.csv','../1-17/tek0015CH3.csv','../1-17/tek0016CH3.csv','../1-17/tek0017CH3.csv']
 plotLabels = ['No Scanning','No Scanning','Scanning','Scanning','Scanning']
@@ -13,7 +14,7 @@ tsVelocityMMsec = .05
 
 wF_uM = 2.6
 wI_uM = 4.0
-numPoints = 10000
+numPoints = 10
 subtractBaseline = True
 plotInterferogram = False
 
@@ -41,19 +42,17 @@ def getFileData(fName):
 def fourierTrans(datX,datY,wi,wf,n):
     freqs =np.linspace(wi,wf,n)
     wD = []
+    pi = np.pi
     for w in freqs:
-        sum = 0.0
-        for i in range(0,len(datX)):
-            sum = sum + datY[i]*np.exp(1j*2000*np.pi*datX[i]/w)
+        sum=np.sum(ne.evaluate('datY*exp(1j*2000*pi*datX/w)'))/len(datX)
         wD.append(sum)
-    return {'f':freqs , 'y':np.array(np.array(wD)/len(datX))}
+    return {'f':freqs , 'y':np.array(np.array(wD))}
     
 def fft(datX,datY):
     rangeX=datX[-1]-datX[0]
     ft = np.fft.fft(datY)
     ft = ft[1::]
-    return {'f' : [rangeX/i for i in range(1,len(datX))[::-1]], 'y' : ft[::-1]}
-    
+    return {'f' : [rangeX/i for i in range(1,len(datX))[::-1]], 'y' : ft[::-1]}    
 
 if(isinstance(filenames,str)):
     filenames=[filenames]
@@ -77,6 +76,7 @@ for i in range(0,len(filenames)):
     
     ft = fourierTrans(x,y,wI_uM,wF_uM,numPoints)
     #ft = fft(x,y)
+    #ft = ftC(x,y,wI_uM,wF_uM,numPoints)
     if(plotInterferogram):
         plt.figure(2)
     if(len(plotLabels)==len(filenames)):
