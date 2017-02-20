@@ -8,17 +8,28 @@ import matplotlib.pyplot as plt
 import numpy as np
 import numexpr as ne
 
-filenames = ['../1-17/tek0013CH3.csv','../1-17/tek0014CH3.csv','../1-17/tek0015CH3.csv','../1-17/tek0016CH3.csv','../1-17/tek0017CH3.csv']
-plotLabels = ['No Scanning','No Scanning','Scanning','Scanning','Scanning']
-tsVelocityMMsec = .05
+#------------------------------------------------------------------------------
 
+#---Input file and user supplied paramters---
+filenames = ['../1-16/tek0003CH2.csv','../1-16/tek0004CH2.csv','../1-16/tek0005CH2.csv']  #input file path
+plotLabels = []                         #Labels to use in plot legend
+tsVelocityMMsec = 5.0                   #Tranlational stage velocity
+
+#---Plot parameters. Plot range, number of points to plot.---
 wF_uM = 2.6
 wI_uM = 4.0
-numPoints = 10
-subtractBaseline = True
-plotInterferogram = False
+numPoints = 100000
 
-c=299792458.0
+#---Program options.---
+subtractBaseline = True                 #Removes DC ofset by subtracting the 
+                                        #average of the first and last quarters
+                                        #of the data.
+
+plotInterferogram = False               #Turns on and off the plotting of the 
+                                        #time domain interferogram. Turn this
+                                        #off for superimposing multiple plots
+                                        #across executions
+#------------------------------------------------------------------------------
 
 def getFileData(fName):
     fHandle = open(fName,'r')
@@ -82,9 +93,10 @@ for i in range(0,len(filenames)):
     if(len(plotLabels)==len(filenames)):
         plt.plot(ft['f'],np.abs(ft['y'])**2,label=plotLabels[i])
     else:    
-        plt.plot(ft['f'],np.abs(ft['y'])**2)
+        plt.plot(ft['f'],np.abs(ft['y'])**2,label=filenames[i])
     plt.xlabel('Wavelength (uM)')
     plt.ylabel('Spectral Density')
+
 
 plt.legend()
 plt.show()
